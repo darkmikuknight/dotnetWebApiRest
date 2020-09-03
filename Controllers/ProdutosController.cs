@@ -3,6 +3,8 @@ using dotnetWebApiRest.Models;
 using System;
 using dotnetWebApiRest.Data;
 using System.Linq;
+using dotnetWebApiRest.HATEOAS;
+using System.Collections.Generic;
 
 namespace dotnetWebApiRest.Controllers
 {
@@ -11,24 +13,42 @@ namespace dotnetWebApiRest.Controllers
     public class ProdutosController : ControllerBase
     {
         private readonly ApplicationDbContext database;
+        private HATEOAS.HATEOAS HATEOAS;
 
         public ProdutosController(ApplicationDbContext database){
             this.database = database;
+            HATEOAS = new HATEOAS.HATEOAS("localhost:5001/v1/Produtos");
+            HATEOAS.AddAction("GET_INFO", "GET");
+            HATEOAS.AddAction("DELETE_PRODUCT", "DELETE");
+            HATEOAS.AddAction("EDIT_PRODUCT", "PATCH");
         }
 
         [HttpGet]
         public IActionResult Get(){
 
             var produtos =  database.Produtos.ToList();
-            return Ok(produtos); // status code = 200
+            List<ProdutoContainer> produtosHATEOAS = new List<ProdutoContainer>();
+
+            foreach(var prod in produtos){
+                ProdutoContainer produtoHATEOAS = new ProdutoContainer();
+                produtoHATEOAS.produto = prod;
+                produtoHATEOAS.links = HATEOAS.GetActions(prod.Id.ToString());
+                produtosHATEOAS.Add(produtoHATEOAS);
+            }
+
+            return Ok(produtosHATEOAS); // status code = 200
         }
 
         [HttpGet("{id}")]
         public IActionResult Get(int id){
 
             try{
-                var produto = database.Produtos.First(p => p.Id == id );
-                 return Ok(produto); // status code = 200
+                Produto produto = database.Produtos.First(p => p.Id == id );
+                ProdutoContainer produtoHATEOAS = new ProdutoContainer();
+                produtoHATEOAS.produto = produto;
+                produtoHATEOAS.links = HATEOAS.GetActions(produto.Id.ToString());
+
+                return Ok(produtoHATEOAS); // status code = 200
 
             }catch(Exception e){
                 return BadRequest(new {msg = "Id inválido!"});
@@ -110,6 +130,11 @@ namespace dotnetWebApiRest.Controllers
             public string Nome {get; set;}
             public float Preco {get; set;}
             
+        }
+
+        public class ProdutoContainer{
+            public Produto produto {get; set;}
+            public Link[] links {get; set;}
         }
     }
 }
