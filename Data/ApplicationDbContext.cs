@@ -11,6 +11,8 @@ namespace dotnetWebApiRest.Data
 
         public DbSet<Produto> Produtos {get; set;}
 
+        public DbSet<Usuario> usuarios {get; set;}
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) {
 
         }

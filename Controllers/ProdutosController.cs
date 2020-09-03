@@ -5,11 +5,13 @@ using dotnetWebApiRest.Data;
 using System.Linq;
 using dotnetWebApiRest.HATEOAS;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 
 namespace dotnetWebApiRest.Controllers
 {
     [Route("v1/[controller]")] //Rotas podem ser usadas para versionar a api e manter o funcionamento de versões diferentes
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class ProdutosController : ControllerBase
     {
         private readonly ApplicationDbContext database;
@@ -124,6 +126,11 @@ namespace dotnetWebApiRest.Controllers
                     return new ObjectResult(new {msg = "Produto não encontrado!"}); 
                 }
             }
+        }
+
+        [HttpGet("teste")]
+        public IActionResult Teste(){
+            return Ok(HttpContext.User.Claims.First(claim => claim.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase)).Value);
         }
 
         public class ProdutoTemp{
