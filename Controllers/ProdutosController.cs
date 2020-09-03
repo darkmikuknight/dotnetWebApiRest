@@ -6,9 +6,8 @@ using System.Linq;
 
 namespace dotnetWebApiRest.Controllers
 {
-
+    [Route("v1/[controller]")] //Rotas podem ser usadas para versionar a api e manter o funcionamento de versões diferentes
     [ApiController]
-    [Route("[controller]")]
     public class ProdutosController : ControllerBase
     {
         private readonly ApplicationDbContext database;
@@ -39,6 +38,17 @@ namespace dotnetWebApiRest.Controllers
         [HttpPost]
         public IActionResult Post([FromBody]  ProdutoTemp pTemp){
 
+            //Validação dos dados//
+            if(pTemp.Preco <= 0){
+                Response.StatusCode = 400;
+                return new ObjectResult(new {msg = "O preço do produto não pode ser menor ou igual a zero!"});
+            }
+
+            if(pTemp.Nome.Length <= 1){
+                Response.StatusCode = 400;
+                return new ObjectResult(new {msg = "O nome do produto tem que ser maior que 1 caractere!"});
+            }
+
             Produto p = new Produto();
             p.Nome = pTemp.Nome;
             p.Preco = pTemp.Preco;
@@ -62,6 +72,38 @@ namespace dotnetWebApiRest.Controllers
             }catch(Exception e){
                 return BadRequest(new {msg = "Id inválido!"});
             }  
+        }
+
+        [HttpPatch]
+        public IActionResult Patch([FromBody] Produto produto){
+            
+            if(produto.Id < 0){
+                Response.StatusCode = 400;
+                return new ObjectResult(new {msg = "Id do produto é inválido"});
+            }
+            else{
+                try{
+
+                    var p = database.Produtos.First(pTemp => pTemp.Id == produto.Id); 
+
+                    if(p != null){
+
+                        p.Nome = produto.Nome != null ? produto.Nome : p.Nome;
+                        p.Preco = produto.Preco > 0 ? produto.Preco : p.Preco;
+
+                        database.SaveChanges();
+                        return Ok();
+
+                    }else{
+                        Response.StatusCode = 400;
+                        return new ObjectResult(new {msg = "Produto não encontrado!"}); 
+                    }
+                
+                }catch(Exception e){
+                    Response.StatusCode = 400;
+                    return new ObjectResult(new {msg = "Produto não encontrado!"}); 
+                }
+            }
         }
 
         public class ProdutoTemp{

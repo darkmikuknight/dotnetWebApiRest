@@ -29,6 +29,11 @@ namespace dotnetWebApiRest
         {
             services.AddDbContext<ApplicationDbContext>(options => options.UseMySql(Configuration.GetConnectionString("DefaultConnection")));
             services.AddControllers();
+
+            //Swagger
+            services.AddSwaggerGen(config =>{
+                config.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo {Title="API de PRODUTOS", Version="v1"});
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -40,6 +45,10 @@ namespace dotnetWebApiRest
             }
 
             app.UseHttpsRedirection();
+            app.UseSwagger(); //Gera um arquivo JSON
+            app.UseSwaggerUI(config => { //Views html do swagger
+                config.SwaggerEndpoint("/swagger/v1/swagger.json", "v1 docs");
+            });
 
             app.UseRouting();
 
