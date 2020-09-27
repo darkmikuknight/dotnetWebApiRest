@@ -5,7 +5,7 @@ using dotnetWebApiRest.Data;
 using System.Linq;
 using dotnetWebApiRest.HATEOAS;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization; //teste para veririfcar se o push foi com meu nome
 
 namespace dotnetWebApiRest.Controllers
 {
